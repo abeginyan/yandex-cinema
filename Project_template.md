@@ -14,15 +14,16 @@
 
 ### 1. Proxy
 
-- Реализован сервис на .NET8 C# ./src/microservices/proxy.
-- Сервис прокси должен принимать запросы на /api/movies и перенаправлять их в монолит или в сервис movies, в зависимости от значения переменной окружения GRADUAL_MIGRATION и MOVIES_MIGRATION_PERCENT.
+- Реализован сервис на .NET8 C# (./src/microservices/proxy)
+- Сервис прокси принимает запросы на /api/movies и перенаправляет их в монолит или в сервис movies, в зависимости от значения переменной окружения GRADUAL_MIGRATION и MOVIES_MIGRATION_PERCENT.
 - Сервис запускается на порту 8000 и имеет health-check на /health
 
 - Протестирован постепенный переход, меняя переменную окружения MOVIES_MIGRATION_PERCENT в файле docker-compose.yml.
 
 ### 2. Kafka
 
-- Разработан сервис на .NET8 C#, при вызове которого создаются события User/Payment/Movie и обрабатываются внутри сервиса с записью в лог.
+- Разработан сервис на .NET8 C# (./src/microservices/events), при вызове которого создаются события User/Payment/Movie и обрабатываются внутри сервиса с записью в лог.
+- Сервис запускается на порту 8082 и имеет health-check на /health
 - Сервис добавлен в docker-compose
 
 #### Postman Тесты
