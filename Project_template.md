@@ -45,22 +45,15 @@
 чтобы api-tests при сборке отрабатывали корректно при отправке 
 коммита в ваш репозиторий.
 
-Как только сборка отработает и в github registry появятся ваши образы, можно переходить к блоку настройки Kubernetes
-Успешным результатом данного шага является "зеленая" сборка и "зеленые" тесты
-
+#### Github workflows
+![](architecture/github_workflows.png)
 
 ### Proxy в Kubernetes
 
 #### Шаг 1
-Для деплоя в kubernetes необходимо залогиниться в docker registry Github'а.
-1. Создайте Personal Access Token (PAT) https://github.com/settings/tokens . Создавайте class с правом read:packages
-2. В src/kubernetes/*.yaml (event-service, monolith, movies-service и proxy-service)  отредактируйте путь до ваших образов 
-```bash
- spec:
-      containers:
-      - name: events-service
-        image: ghcr.io/ваш логин/имя репозитория/events-service:latest
-```
+
+1. Создан Personal Access Token (PAT) с правом read:packages
+2. В src/kubernetes/*.yaml отредактирован путь до образов (event-service, monolith, movies-service и proxy-service) 
 3. Добавьте в секрет src/kubernetes/dockerconfigsecret.yaml в поле
 ```bash
  .dockerconfigjson: значение в base64 файла ~/.docker/config.json
