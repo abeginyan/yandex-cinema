@@ -85,8 +85,8 @@ moviesService:
       cpu: 100m
       memory: 128Mi
   service:
-    port: 8081
-    targetPort: 8081
+    port: 8091
+    targetPort: 8091
     type: ClusterIP
 
 # Events service configuration

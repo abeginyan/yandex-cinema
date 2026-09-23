@@ -776,7 +776,7 @@
     },
     {
       "key": "moviesServiceUrl",
-      "value": "http://localhost:8081"
+      "value": "http://localhost:8091"
     },
     {
       "key": "eventsServiceUrl",

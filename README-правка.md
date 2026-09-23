@@ -96,7 +96,7 @@ GitHub Actions для непрерывной интеграции и разве�
 
 После запуска сервисы доступны:
 - Monolith: http://localhost:8080
-- Movies Service: http://localhost:8081
+- Movies Service: http://localhost:8091
 - Events Service: http://localhost:8082
 - API Gateway (Proxy): http://localhost:8000
 - Kafka UI: http://localhost:8090

@@ -16,7 +16,7 @@ servers:
     description: API Gateway (Proxy Service)
   - url: http://localhost:8080
     description: Монолитное приложение
-  - url: http://localhost:8081
+  - url: http://localhost:8091
     description: Микросервис фильмов
   - url: http://localhost:8082
     description: Микросервис событий

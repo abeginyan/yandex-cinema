@@ -77,10 +77,10 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      # Host 8081 is occupied by McAfee (macmnsvc); expose on 8091 instead.
-      - "8091:8081"
+      # Host 8081 is occupied by McAfee (macmnsvc); the service runs on 8091.
+      - "8091:8091"
     environment:
-      PORT: 8081
+      PORT: 8091
       DB_CONNECTION_STRING: postgres://postgres:postgres_password@postgres:5432/cinemaabyss?sslmode=disable
     networks:
       - cinemaabyss-network
@@ -119,7 +119,7 @@ services:
     environment:
       PORT: 8000
       MONOLITH_URL: http://monolith:8080
-      MOVIES_SERVICE_URL: http://movies-service:8081
+      MOVIES_SERVICE_URL: http://movies-service:8091
       EVENTS_SERVICE_URL: http://events-service:8082
       GRADUAL_MIGRATION: "true"
       MOVIES_MIGRATION_PERCENT: "50"

@@ -1,10 +1,10 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Confluent.Kafka;
+using EventsService;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// JSON: emit snake_case-ish property names as declared and be lenient on input.
+// JSON: emit property names as declared and be lenient on input.
 builder.Services.ConfigureHttpJsonOptions(o =>
 {
     o.SerializerOptions.PropertyNameCaseInsensitive = true;
@@ -13,15 +13,20 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 
 // Kafka producer as a singleton. Brokers come from KAFKA_BROKERS (docker-compose: kafka:9092).
 var brokers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "localhost:9092";
-var producerConfig = new ProducerConfig
+var producer = new ProducerBuilder<string, string>(new ProducerConfig
 {
     BootstrapServers = brokers,
     // Keep the service responsive even if a broker is briefly unavailable.
     MessageTimeoutMs = 5000,
     AllowAutoCreateTopics = true,
-};
-var producer = new ProducerBuilder<string, string>(producerConfig).Build();
+}).Build();
 builder.Services.AddSingleton<IProducer<string, string>>(producer);
+
+// The Events class wraps the producer and owns event -> topic routing.
+builder.Services.AddSingleton<Events>();
+
+// Background consumer that reads back and logs every event as it is processed.
+builder.Services.AddHostedService<EventsConsumer>();
 
 var app = builder.Build();
 
@@ -31,61 +36,38 @@ app.Lifetime.ApplicationStopping.Register(() =>
     producer.Dispose();
 });
 
-var logger = app.Logger;
-
-// Publishes an event to a Kafka topic and returns the standard success payload.
-async Task<IResult> Publish(string topic, object payload)
+// Turns a publish outcome into the EventResponse defined in api-specification.yaml,
+// or an Error response with status 500 when publishing fails.
+async Task<IResult> Handle(Func<Task<PublishResult>> publish)
 {
-    var json = JsonSerializer.Serialize(payload);
     try
     {
-        var result = await producer.ProduceAsync(topic, new Message<string, string>
+        var r = await publish();
+        return Results.Json(new
         {
-            Key = Guid.NewGuid().ToString(),
-            Value = json,
-        });
-        logger.LogInformation("Published to {Topic} @ {Offset}", topic, result.TopicPartitionOffset);
+            status = "success",
+            partition = r.Partition,
+            offset = r.Offset,
+            @event = r.Event,
+        }, statusCode: 201);
     }
     catch (ProduceException<string, string> ex)
     {
-        logger.LogError(ex, "Failed to publish to {Topic}", topic);
-        return Results.Json(new { status = "error", error = ex.Error.Reason }, statusCode: 500);
+        app.Logger.LogError(ex, "Failed to publish event");
+        return Results.Json(new { error = ex.Error.Reason }, statusCode: 500);
     }
-
-    return Results.Json(new { status = "success", topic, @event = payload }, statusCode: 201);
 }
 
 app.MapGet("/api/events/health", () => Results.Ok(new { status = true }));
 
-app.MapPost("/api/events/movie", async (MovieEvent e) =>
-    await Publish("movie-events", e));
+app.MapPost("/api/events/movie", (MovieEvent e, Events events) =>
+    Handle(() => events.PublishMovieAsync(e)));
 
-app.MapPost("/api/events/user", async (UserEvent e) =>
-    await Publish("user-events", e));
+app.MapPost("/api/events/user", (UserEvent e, Events events) =>
+    Handle(() => events.PublishUserAsync(e)));
 
-app.MapPost("/api/events/payment", async (PaymentEvent e) =>
-    await Publish("payment-events", e));
+app.MapPost("/api/events/payment", (PaymentEvent e, Events events) =>
+    Handle(() => events.PublishPaymentAsync(e)));
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8082";
 app.Run($"http://0.0.0.0:{port}");
-
-// Event models mirror the payloads exercised by tests/postman/CinemaAbyss.postman_collection.json.
-record MovieEvent(
-    [property: JsonPropertyName("movie_id")] int MovieId,
-    [property: JsonPropertyName("title")] string? Title,
-    [property: JsonPropertyName("action")] string? Action,
-    [property: JsonPropertyName("user_id")] int UserId);
-
-record UserEvent(
-    [property: JsonPropertyName("user_id")] int UserId,
-    [property: JsonPropertyName("username")] string? Username,
-    [property: JsonPropertyName("action")] string? Action,
-    [property: JsonPropertyName("timestamp")] string? Timestamp);
-
-record PaymentEvent(
-    [property: JsonPropertyName("payment_id")] int PaymentId,
-    [property: JsonPropertyName("user_id")] int UserId,
-    [property: JsonPropertyName("amount")] double Amount,
-    [property: JsonPropertyName("status")] string? Status,
-    [property: JsonPropertyName("timestamp")] string? Timestamp,
-    [property: JsonPropertyName("method_type")] string? MethodType);
