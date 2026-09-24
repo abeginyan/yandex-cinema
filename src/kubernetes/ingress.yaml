@@ -7,12 +7,14 @@ metadata:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
+  ingressClassName: nginx
   rules:
     - host: cinemaabyss.example.com
       http:
         paths:
-          #дополните конфигурацию для /
-          ...
+          # Events microservice — /api/events, /api/events/movie,
+          # /api/events/user, /api/events/health (events-service:8082).
+          # Listed first so this more specific prefix wins over "/".
           - path: /api/events
             pathType: Prefix
             backend:
@@ -20,3 +22,14 @@ spec:
                 name: events-service
                 port:
                   number: 8082
+          # Proxy service (strangler-fig gateway) — catch-all entry point.
+          # Handles /health and forwards the rest to the right upstream:
+          #   /api/movies, /api/movies/health -> movies-service:8091 (or monolith)
+          #   /api/users, /api/payments, /api/subscriptions -> monolith:8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: proxy-service
+                port:
+                  number: 8000

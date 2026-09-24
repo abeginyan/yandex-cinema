@@ -183,3 +183,5 @@ config:
   # Strangler Fig configuration
   gradualMigration: "true"
   moviesMigrationPercent: "100"
+  # Kafka broker address (in-cluster Service DNS name, not localhost)
+  kafkaBrokers: "kafka:9092"

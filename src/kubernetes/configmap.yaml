@@ -13,7 +13,14 @@ data:
   # Service URLs
   MONOLITH_URL: "http://monolith:8080"
   MOVIES_SERVICE_URL: "http://movies-service:8091"
-  
+
+  # Kafka configuration
+  # Use the in-cluster Kafka Service DNS name, NOT localhost. Inside a pod
+  # localhost points to the pod itself, so localhost:9092 -> Connection refused.
+  # "kafka" resolves to the kafka Service in the same (cinemaabyss) namespace
+  # and matches KAFKA_ADVERTISED_LISTENERS (PLAINTEXT://kafka:9092).
+  KAFKA_BROKERS: "kafka:9092"
+
   # Strangler Fig configuration
   GRADUAL_MIGRATION: "true"
   MOVIES_MIGRATION_PERCENT: "100"
