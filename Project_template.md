@@ -64,19 +64,19 @@
 Был установлен миникуб на локальную машину, поднят кластер и проверена работа ingress.
   
 1. Создан namespace:
-2. Создан секреты и переменные
+2. Создан секреты и переменные  
 3. Развернута база данных:
 ![](architecture/db_kube.png)
 4. Развернута Kafka:
 5. Развернут монолит:
-6. Развернуты микросервисы:
+6. Развернуты микросервисы:  
 7. Развернут прокси-сервис:
 ![](architecture/pods_kube.png)
 8. Добавлен ingress
 9. Добавлен 127.0.0.1 cinemaabyss.example.com в /etc/hosts
-10. Установлен minikube tunnel для проброса портов
+10. Установлен minikube tunnel для проброса портов  
 11. Результат https://cinemaabyss.example.com/api/movies
-![](architecture/example_com.png)
+![](architecture/example_com.png)  
 12. Запущены тесты из папки tests/postman
 ![](architecture/tests.png)
   
