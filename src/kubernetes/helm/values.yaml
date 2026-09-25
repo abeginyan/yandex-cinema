@@ -5,7 +5,7 @@ global:
 
 # Image pull secrets
 imagePullSecrets:
-  dockerconfigjson: ewoJImF1dGhzIjogewoJCSJnaGNyLmlvIjogewoJCQkiYXV0aCI6
+  dockerconfigjson: ew0KCSJhdXRocyI6IHsNCiAgICAgICAgICAgICAgICAiZ2hjci5pbyI6IHsNCiAgICAgICAgICAgICAgICAgICAgICAgImF1dGgiOiAiWVdKbFoybHVlV0Z1T21kb2NGOVVTMkZNY0cxa1dGTlpVMjlwZG5WTlJHMTBVV3BZWkcweFltTmtOVll5VVd3eFJWaz0iDQogICAgICAgICAgICAgICAgfQ0KICAgICAgICB9LA0KCSJjcmVkc1N0b3JlIjogImRlc2t0b3AiLA0KCSJjdXJyZW50Q29udGV4dCI6ICJkZXNrdG9wLWxpbnV4IiwNCgkicGx1Z2lucyI6IHsNCgkJIi14LWNsaS1oaW50cyI6IHsNCgkJCSJlbmFibGVkIjogInRydWUiDQoJCX0sDQoJCSJhaSI6IHsNCgkJCSJob29rcyI6ICJidWlsZCxidWlsZHggYnVpbGQscnVuLGNvbXBvc2UiDQoJCX0sDQoJCSJjb21wb3NlIjogew0KCQkJImhvb2tzIjogImxvZ3MsY29tcG9zZSBsb2dzLGNvbXBvc2UgYXR0YWNoLGNvbXBvc2UgdXAiDQoJCX0sDQoJCSJkZWJ1ZyI6IHsNCgkJCSJob29rcyI6ICJleGVjIg0KCQl9LA0KCQkic2NvdXQiOiB7DQoJCQkiaG9va3MiOiAicHVsbCxidWlsZHggYnVpbGQiDQoJCX0NCgl9LA0KCSJmZWF0dXJlcyI6IHsNCgkJImhvb2tzIjogInRydWUiDQoJfQ0KfQ==
 # Database configuration
 database:
   host: postgres
@@ -33,7 +33,7 @@ database:
 monolith:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/monolith
+    repository: ghcr.io/abeginyan/yandex-cinema/monolith
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -53,7 +53,7 @@ monolith:
 proxyService:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/proxy-service
+    repository: ghcr.io/abeginyan/yandex-cinema/proxy-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -65,7 +65,7 @@ proxyService:
       cpu: 100m
       memory: 128Mi
   service:
-    port: 80
+    port: 8000
     targetPort: 8000
     type: ClusterIP
 
@@ -73,7 +73,7 @@ proxyService:
 moviesService:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/movies-service
+    repository: ghcr.io/abeginyan/yandex-cinema/movies-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -93,7 +93,7 @@ moviesService:
 eventsService:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/events-service
+    repository: ghcr.io/abeginyan/yandex-cinema/events-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -169,14 +169,18 @@ ingress:
   hosts:
     - host: cinemaabyss.example.com
       paths:
-        - path: /
-          pathType: Prefix
-          service: proxy-service
-          port: 80
+        # Events microservice — listed first so this more specific prefix
+        # wins over the "/" catch-all.
         - path: /api/events
           pathType: Prefix
           service: events-service
           port: 8082
+        # Proxy service (strangler-fig gateway) — catch-all entry point.
+        # Port must match the proxy-service Service port (8000), not 80.
+        - path: /
+          pathType: Prefix
+          service: proxy-service
+          port: 8000
 
 # Application configuration
 config:

@@ -1,5 +1,3 @@
-## Изучите [README.md](.\README.md) файл и структуру проекта.
-
 # Задание 1
 
 ## C4 Диаграммы
@@ -60,36 +58,37 @@
 
   Доработан src/kubernetes/event-service.yaml и src/kubernetes/proxy-service.yaml
 
-  - Необходимо создать Deployment и Service 
-  - Доработайте ingress.yaml, чтобы можно было с помощью тестов проверить создание событий
+  - Необходан Deployment и Service 
+  - Доработан ingress.yaml, чтобы можно было с помощью тестов проверить создание событий
  
   - #### Кластер minikube
   
   Был установлен миникуб на локальную машину, поднят кластер и проверена работа ingress.
   
-  1. Создан namespace:
-  2. Создан секреты и переменные
-  3. Развернута база данных:
+1. Создан namespace:
+2. Создан секреты и переменные
+3. Развернута база данных:
 
 ![](architecture/db_kube.png)
 
-  4. Развернута Kafka:
-  5. Развернут монолит:
-  6. Развернуты микросервисы:
-  7. Развернут прокси-сервис:
+4. Развернута Kafka:
+5. Развернут монолит:
+6. Развернуты микросервисы:
+7. Развернут прокси-сервис:
 
 ![](architecture/pods_kube.png)
 
-  8. Добавлен ingress
-  9. Добавлен 127.0.0.1 cinemaabyss.example.com в /etc/hosts
-  10. Установлен minikube tunnel для проброса портов
-  11. Результат https://cinemaabyss.example.com/api/movies
-  ![](architecture/example_com.png)
+8. Добавлен ingress
+9. Добавлен 127.0.0.1 cinemaabyss.example.com в /etc/hosts
+10. Установлен minikube tunnel для проброса портов
+11. Результат https://cinemaabyss.example.com/api/movies
+![](architecture/example_com.png)
   
-  12. Запущены тесты из папки tests/postman
-  ![](architecture/tests.png)
+12. Запущены тесты из папки tests/postman
+![](architecture/tests.png)
   
 #### Шаг 3
+
 Скриншот вывода при вызове https://cinemaabyss.example.com/api/movies
 ![](architecture/example_com.png)
 
@@ -97,84 +96,27 @@ Cкриншот вывода event-service после вызова тестов.
 ![](architecture/event_logs.png)
 
 # Задание 4
-Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
+Для простоты дальнейшего обновления и развертывания реализованы helm-чарты для прокси-сервиса
 
-Для этого:
-1. Перейдите в директорию helm и отредактируйте файл values.yaml
+1. Отредактирован файл values.yaml
 
-```yaml
-# Proxy service configuration
-proxyService:
-  enabled: true
-  image:
-    repository: ghcr.io/db-exp/cinemaabysstest/proxy-service
-    tag: latest
-    pullPolicy: Always
-  replicas: 1
-  resources:
-    limits:
-      cpu: 300m
-      memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  service:
-    port: 80
-    targetPort: 8000
-    type: ClusterIP
-```
+    - Записаны пути образов для всех сервисов
+    - Скопировано значение из конфигурации kubernetes в imagePullSecret
 
-- Вместо ghcr.io/db-exp/cinemaabysstest/proxy-service напишите свой путь до образа для всех сервисов
-- для imagePullSecret проставьте свое значение (скопируйте из конфигурации kubernetes)
-  ```yaml
-  imagePullSecrets:
-      dockerconfigjson: ewoJImF1dGhzIjogewoJCSJnaGNyLmlvIjogewoJCQkiYXV0aCI6ICJaR0l0Wlhod09tZG9jRjl2UTJocVZIa3dhMWhKVDIxWmFVZHJOV2hRUW10aFVXbFZSbTVaTjJRMFNYUjRZMWM9IgoJCX0KCX0sCgkiY3JlZHNTdG9yZSI6ICJkZXNrdG9wIiwKCSJjdXJyZW50Q29udGV4dCI6ICJkZXNrdG9wLWxpbnV4IiwKCSJwbHVnaW5zIjogewoJCSIteC1jbGktaGludHMiOiB7CgkJCSJlbmFibGVkIjogInRydWUiCgkJfQoJfSwKCSJmZWF0dXJlcyI6IHsKCQkiaG9va3MiOiAidHJ1ZSIKCX0KfQ==
-  ```
+2. ./templates/services 
 
-2. В папке ./templates/services заполните шаблоны для proxy-service.yaml и events-service.yaml (опирайтесь на свою kubernetes конфигурацию - смысл helm'а сделать шаблоны для быстрого обновления и установки)
+    - Заполнены шаблоны для proxy-service.yaml и events-service.yaml (опирайтесь на свою kubernetes конфигурацию)
 
-```yaml
-template:
-    metadata:
-      labels:
-        app: proxy-service
-    spec:
-      containers:
-       Тут ваша конфигурация
-```
+3. Проверка установки
 
-3. Проверьте установку
-Сначала удалим установку руками
+- Сначала удаляем установку руками
+![](architecture/delete_pods.png)
 
-```bash
-kubectl delete all --all -n cinemaabyss
-kubectl delete  namespace cinemaabyss
-```
+- Запускаем установку helm
+![](architecture/helm_deploy.png)
 
-Запустите 
-```bash
-helm install cinemaabyss .\src\kubernetes\helm --namespace cinemaabyss --create-namespace
-```
+- Проверяем развертывание:
+![](architecture/helm_pods.png)
 
-Если в процессе будет ошибка
-```code
-[2025-04-08 21:43:38,780] ERROR Fatal error during KafkaServer startup. Prepare to shutdown (kafka.server.KafkaServer)
-kafka.common.InconsistentClusterIdException: The Cluster ID OkOjGPrdRimp8nkFohYkCw doesn't match stored clusterId Some(sbkcoiSiQV2h_mQpwy05zQ) in meta.properties. The broker is trying to join the wrong cluster. Configured zookeeper.connect may be wrong.
-```
-
-Проверьте развертывание:
-```bash
-kubectl get pods -n cinemaabyss
-minikube tunnel
-```
-
-Потом вызовите 
-https://cinemaabyss.example.com/api/movies
-и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
-
-## Удаляем все
-
-```bash
-kubectl delete all --all -n cinemaabyss
-kubectl delete namespace cinemaabyss
-```
+- Потом вызоваем https://cinemaabyss.example.com/api/movies
+![](architecture/example_com_last_result.png)
