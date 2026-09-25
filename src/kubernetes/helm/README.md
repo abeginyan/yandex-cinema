@@ -102,8 +102,8 @@ helm uninstall cinemaabyss
 | `moviesService.resources.limits.memory` | Movies service memory limit            | `256Mi`         |
 | `moviesService.resources.requests.cpu` | Movies service CPU request              | `100m`          |
 | `moviesService.resources.requests.memory` | Movies service memory request        | `128Mi`         |
-| `moviesService.service.port`   | Movies service port                             | `8081`          |
-| `moviesService.service.targetPort` | Movies service container port               | `8081`          |
+| `moviesService.service.port`   | Movies service port                             | `8091`          |
+| `moviesService.service.targetPort` | Movies service container port               | `8091`          |
 | `moviesService.service.type`   | Movies service type                             | `ClusterIP`     |
 
 ### Events Service Parameters

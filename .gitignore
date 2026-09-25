@@ -154,3 +154,7 @@ go.work
 
 # Postman tests reports
 tests/postman/reports/
+/.vs
+/src/microservices/events/obj
+/src/microservices/proxy/obj
+/architecture/Postman.png

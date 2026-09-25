@@ -2,9 +2,9 @@ name: API Tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, cinema ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, cinema ]
   workflow_dispatch:
     inputs:
       environment:
@@ -35,10 +35,12 @@ jobs:
       
       - name: Start services with Docker Compose
         run: |
-          docker compose up -d
+          docker compose up -d --build
           # Wait for services to be ready
           echo "Waiting for services to be ready..."
           sleep 120
+          # Show status of all containers
+          docker compose ps
       
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -54,18 +56,23 @@ jobs:
       - name: Run API tests
         working-directory: tests/postman
         run: |
-
-          docker compose up -d
-          # Wait for services to be ready
-          echo "Waiting for services to be ready..."
-          sleep 15
-          # Build the Docker image
+          # Build the test runner image
           docker build -t cinemaabyss-api-tests .
-          
-          # Run the tests in Docker
-          docker run --network=cinemaabyss-network -v "$(pwd)/reports:/app/reports" cinemaabyss-api-tests
-        
-      
+
+          # Run the tests inside the compose network against the docker environment
+          docker run --rm \
+            --network=cinemaabyss-network \
+            -v "$(pwd)/reports:/app/reports" \
+            cinemaabyss-api-tests --environment docker
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-reports
+          path: tests/postman/reports
+          if-no-files-found: ignore
+
       - name: Stop services
         if: always()
-        run: docker compose down
+        run: docker compose down -v

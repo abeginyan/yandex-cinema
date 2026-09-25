@@ -22,13 +22,13 @@ spec:
     spec:
       containers:
       - name: movies-service
-        image: ghcr.io/db-exp/cinemaabysstest/movies-service:latest
+        image: ghcr.io/abeginyan/yandex-cinema/movies-service:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 8081
+        - containerPort: 8091
         env:
         - name: PORT
-          value: "8081"
+          value: "8091"
         - name: DB_CONNECTION_STRING
           value: "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable"
         envFrom:
@@ -46,13 +46,13 @@ spec:
         readinessProbe:
           httpGet:
             path: /api/movies/health
-            port: 8081
+            port: 8091
           initialDelaySeconds: 5
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /api/movies/health
-            port: 8081
+            port: 8091
           initialDelaySeconds: 15
           periodSeconds: 20
       restartPolicy: Always
@@ -68,6 +68,6 @@ spec:
   selector:
     app: movies-service
   ports:
-  - port: 8081
-    targetPort: 8081
+  - port: 8091
+    targetPort: 8091
   type: ClusterIP

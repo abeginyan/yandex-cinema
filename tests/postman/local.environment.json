@@ -10,7 +10,7 @@
     },
     {
       "key": "moviesServiceUrl",
-      "value": "http://127.0.0.1:8081",
+      "value": "http://127.0.0.1:8091",
       "type": "default",
       "enabled": true
     },
