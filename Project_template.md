@@ -107,13 +107,17 @@ Cкриншот вывода event-service после вызова тестов.
 3. Проверка установки
 
 - Сначала удаляем установку руками
-![](architecture/delete_pods.png)
+
+    ![](architecture/delete_pods.png)
 
 - Запускаем установку helm
-![](architecture/helm_deploy.png)
 
-- Проверяем развертывание:
-![](architecture/helm_pods.png)
+    ![](architecture/helm_deploy.png)
+
+- Проверяем развертывание
+
+    ![](architecture/helm_pods.png)
 
 - Потом вызоваем https://cinemaabyss.example.com/api/movies
-![](architecture/example_com_last_result.png)
+
+    ![](architecture/example_com_last_result.png)
